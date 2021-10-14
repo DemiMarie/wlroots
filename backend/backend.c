@@ -73,6 +73,7 @@ struct wlr_session *wlr_backend_get_session(struct wlr_backend *backend) {
 	return NULL;
 }
 
+#if WLR_HAS_SESSION
 static uint64_t get_current_time_ms(void) {
 	struct timespec ts = {0};
 	clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -118,6 +119,14 @@ static struct wlr_session *session_create_and_wait(struct wl_display *disp) {
 
 	return session;
 }
+#else
+#if WLR_HAS_DRM_BACKEND || WLR_HAS_LIBINPUT_BACKEND
+#error "DRM and libinput backends require the session backend"
+#endif
+static struct wlr_session *session_create_and_wait(struct wl_display *disp __attribute__((unused))) {
+	return NULL;
+}
+#endif
 
 clockid_t wlr_backend_get_presentation_clock(struct wlr_backend *backend) {
 	if (backend->impl->get_presentation_clock) {
@@ -271,6 +280,7 @@ static bool attempt_backend_by_name(struct wl_display *display,
 		backend = attempt_headless_backend(display);
 	} else if (strcmp(name, "noop") == 0) {
 		backend = attempt_noop_backend(display);
+#if WLR_HAS_SESSION
 	} else if (strcmp(name, "drm") == 0 || strcmp(name, "libinput") == 0) {
 		// DRM and libinput need a session
 		if (multi->session == NULL) {
@@ -293,6 +303,7 @@ static bool attempt_backend_by_name(struct wl_display *display,
 #endif
 		}
 	} else {
+#endif
 		wlr_log(WLR_ERROR, "unrecognized backend '%s'", name);
 		return false;
 	}
@@ -325,7 +336,9 @@ struct wlr_backend *wlr_backend_autocreate(struct wl_display *display) {
 		while (name != NULL) {
 			if (!attempt_backend_by_name(display, multi, name)) {
 				wlr_log(WLR_ERROR, "failed to add backend '%s'", name);
+#if WLR_HAS_SESSION
 				wlr_session_destroy(multi->session);
+#endif
 				wlr_backend_destroy(backend);
 				free(names);
 				return NULL;
@@ -387,6 +400,9 @@ struct wlr_backend *wlr_backend_autocreate(struct wl_display *display) {
 		attempt_drm_backend(display, backend, multi->session);
 	if (!primary_drm) {
 		wlr_log(WLR_ERROR, "Failed to open any DRM device");
+#if WLR_HAS_LIBINPUT_BACKEND
+		wlr_backend_destroy(libinput);
+#endif
 		wlr_session_destroy(multi->session);
 		wlr_backend_destroy(backend);
 		return NULL;
