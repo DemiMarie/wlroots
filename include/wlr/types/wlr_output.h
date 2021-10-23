@@ -75,7 +75,6 @@ enum wlr_output_state_mode_type {
 struct wlr_output_state {
 	uint32_t committed; // enum wlr_output_state_field
 	pixman_region32_t damage; // output-buffer-local coordinates
-	bool enabled;
 	float scale;
 	enum wl_output_transform transform;
 	bool adaptive_sync_enabled;
@@ -95,6 +94,9 @@ struct wlr_output_state {
 	// only valid if WLR_OUTPUT_STATE_GAMMA_LUT
 	uint16_t *gamma_lut;
 	size_t gamma_lut_size;
+
+	// only valid if WLR_OUTPUT_STATE_ENABLED
+	bool enabled;
 };
 
 struct wlr_output_impl;
@@ -490,4 +492,15 @@ enum wl_output_transform wlr_output_transform_invert(
 enum wl_output_transform wlr_output_transform_compose(
 	enum wl_output_transform tr_a, enum wl_output_transform tr_b);
 
+/**
+ * Obtains the pending resolution of the output. Parameters must be valid
+ * non-NULL pointers.
+ */
+void wlr_output_pending_resolution(struct wlr_output *output,
+	int *width, int *height);
+
+/**
+ * Returns the pending state of the enabled flag.
+ */
+bool wlr_output_pending_enabled(struct wlr_output *output);
 #endif
