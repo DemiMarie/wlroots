@@ -236,6 +236,7 @@ static void keyboard_handle_leave(void *data, struct wl_keyboard *wl_keyboard,
 	uint32_t time = get_current_time_msec();
 
 	size_t num_keycodes = dev->keyboard->num_keycodes;
+	assert(num_keycodes < 0x10000);
 	uint32_t pressed[num_keycodes + 1];
 	memcpy(pressed, dev->keyboard->keycodes,
 		num_keycodes * sizeof(uint32_t));

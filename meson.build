@@ -29,6 +29,10 @@ add_project_arguments([
 cc = meson.get_compiler('c')
 
 add_project_arguments(cc.get_supported_arguments([
+	'-fno-strict-aliasing',
+	'-fno-delete-null-pointer-checks',
+	'-fwrapv',
+	'-fwrapv-pointer',
 	'-Wundef',
 	'-Wlogical-op',
 	'-Wmissing-include-dirs',
