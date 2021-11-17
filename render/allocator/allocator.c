@@ -22,6 +22,7 @@ void wlr_allocator_init(struct wlr_allocator *alloc,
 	wl_signal_init(&alloc->events.destroy);
 }
 
+#if WLR_HAS_GBM_ALLOCATOR || WLR_HAS_DRM_DUMB_ALLOCATOR
 /* Re-open the DRM node to avoid GEM handle ref'counting issues. See:
  * https://gitlab.freedesktop.org/mesa/drm/-/merge_requests/110
  */
@@ -84,7 +85,9 @@ static int reopen_drm_node(int drm_fd, bool allow_render_node) {
 
 	return new_fd;
 }
+#endif
 
+#if WLR_HAS_GBM_ALLOCATOR || WLR_HAS_SHM_ALLOCATOR || WLR_HAS_DRM_DUMB_ALLOCATOR
 struct wlr_allocator *allocator_autocreate_with_drm_fd(
 		struct wlr_backend *backend, struct wlr_renderer *renderer,
 		int drm_fd) {
@@ -92,6 +95,7 @@ struct wlr_allocator *allocator_autocreate_with_drm_fd(
 	uint32_t renderer_caps = renderer_get_render_buffer_caps(renderer);
 
 	struct wlr_allocator *alloc = NULL;
+#if WLR_HAS_GBM_ALLOCATOR
 	uint32_t gbm_caps = WLR_BUFFER_CAP_DMABUF;
 	if ((backend_caps & gbm_caps) && (renderer_caps & gbm_caps)
 			&& drm_fd >= 0) {
@@ -106,7 +110,9 @@ struct wlr_allocator *allocator_autocreate_with_drm_fd(
 		close(gbm_fd);
 		wlr_log(WLR_DEBUG, "Failed to create gbm allocator");
 	}
+#endif
 
+#if WLR_HAS_SHM_ALLOCATOR
 	uint32_t shm_caps = WLR_BUFFER_CAP_SHM | WLR_BUFFER_CAP_DATA_PTR;
 	if ((backend_caps & shm_caps) && (renderer_caps & shm_caps)) {
 		wlr_log(WLR_DEBUG, "Trying to create shm allocator");
@@ -115,7 +121,9 @@ struct wlr_allocator *allocator_autocreate_with_drm_fd(
 		}
 		wlr_log(WLR_DEBUG, "Failed to create shm allocator");
 	}
+#endif
 
+#if WLR_HAS_DRM_DUMB_ALLOCATOR
 	uint32_t drm_caps = WLR_BUFFER_CAP_DMABUF | WLR_BUFFER_CAP_DATA_PTR;
 	if ((backend_caps & drm_caps) && (renderer_caps & drm_caps)
 			&& drm_fd >= 0 && drmIsMaster(drm_fd)) {
@@ -130,6 +138,7 @@ struct wlr_allocator *allocator_autocreate_with_drm_fd(
 		close(dumb_fd);
 		wlr_log(WLR_DEBUG, "Failed to create drm dumb allocator");
 	}
+#endif
 
 	wlr_log(WLR_ERROR, "Failed to create allocator");
 	return NULL;
@@ -141,6 +150,7 @@ struct wlr_allocator *wlr_allocator_autocreate(struct wlr_backend *backend,
 	int drm_fd = wlr_backend_get_drm_fd(backend);
 	return allocator_autocreate_with_drm_fd(backend, renderer, drm_fd);
 }
+#endif
 
 void wlr_allocator_destroy(struct wlr_allocator *alloc) {
 	if (alloc == NULL) {

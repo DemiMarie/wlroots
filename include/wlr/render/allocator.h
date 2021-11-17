@@ -10,6 +10,7 @@
 #define WLR_ALLOCATOR_H
 
 #include <wayland-server-core.h>
+#include <wlr/config.h>
 
 struct wlr_allocator;
 struct wlr_backend;
@@ -36,11 +37,14 @@ struct wlr_allocator {
 	} events;
 };
 
+#if defined WLR_HAS_GBM_ALLOCATOR || defined WLR_HAS_SHM_ALLOCATOR || defined WLR_HAS_DRM_DUMB_ALLOCATOR
 /**
  * Creates the adequate wlr_allocator given a backend and a renderer
  */
 struct wlr_allocator *wlr_allocator_autocreate(struct wlr_backend *backend,
 	struct wlr_renderer *renderer);
+#endif
+
 /**
  * Destroy the allocator.
  */
