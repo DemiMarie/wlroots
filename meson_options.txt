@@ -5,3 +5,4 @@ option('icon_directory', description: 'Location used to look for cursors (defaul
 option('renderers', type: 'array', choices: ['auto', 'gles2', 'vulkan'], value: ['auto'], description: 'Select built-in renderers')
 option('backends', type: 'array', choices: ['auto', 'drm', 'libinput', 'x11'], value: ['auto'], description: 'Select built-in backends')
 option('allocators', type: 'array', choices: ['auto', 'gbm', 'drm-dumb', 'shm'], value: ['auto'], description: 'Select built-in allocators')
+option('session', type: 'feature', value: 'auto', description: 'Enable session support (required for DRM and libinput backends)')
