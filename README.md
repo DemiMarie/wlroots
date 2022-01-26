@@ -1,3 +1,5 @@
+# wlroots development has moved to https://gitlab.freedesktop.org; this repository is being archived
+
 # wlroots
 
 Pluggable, composable, unopinionated modules for building a [Wayland]
